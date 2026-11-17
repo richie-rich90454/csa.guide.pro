@@ -1,5 +1,11 @@
+---
+title: AP CS A Unit 2 - Objects, Strings, and Math
+---
 [Go back to home page](README.md)
-# [previous](unit_1.md)<-->[next](unit_3.md)
+# [previous](unit_1.md) <--> [next](unit_3.md)
+
+Looking for the new four-unit curriculum? See [New Unit 1](new_unit_1.md).
+
 # AP CS A Unit Two: Objects, Strings, and Math
 The basics of trash code: long and unwinded code that does nothing.
 ## 1. Objects and Reference Variables
@@ -428,3 +434,224 @@ public class WrapperDemo {
   double angle = Math.PI / 2;
   System.out.println(Math.sin(angle)); // 1.0
   ```
+
+---
+
+## 8. The Rest of the String Toolkit
+### Definition
+The `String` class has more methods than the core six. AP CS A free-response questions love the small ones (`contains`, `startsWith`, `substring`, `indexOf`) because chaining them character-by-character is the classic trash-code move.
+### More Common Methods
+- `boolean equalsIgnoreCase(String other)`: Content comparison ignoring case.
+- `boolean contains(String str)`: True if `str` appears anywhere inside this string.
+- `boolean startsWith(String prefix)`, `boolean endsWith(String suffix)`: Prefix/suffix checks.
+- `String replace(char oldChar, char newChar)`, `String replace(String target, String replacement)`.
+- `String trim()`: Removes leading and trailing whitespace.
+- `boolean isEmpty()`: True when `length() == 0`.
+- `static String valueOf(x)`: Converts almost anything to a `String` (e.g. `String.valueOf(5)` is `"5"`).
+- `int compareTo(String other)`: Negative if this string comes first lexicographically, positive if it comes after, zero if equal.
+### Example Program
+```java
+public class StringToolkit {
+    public static void main(String[] args) {
+        String course = "  AP Computer Science A  ";
+        String trimmed = course.trim();
+        System.out.println("Trimmed: [" + trimmed + "]");
+        System.out.println("Starts with AP? " + trimmed.startsWith("AP"));
+        System.out.println("Contains 'Science'? " + trimmed.contains("Science"));
+        System.out.println("Ends with 'A'? " + trimmed.endsWith("A"));
+        System.out.println("IgnoreCase match? " + trimmed.equalsIgnoreCase("ap computer science a"));
+        System.out.println("Replaced: " + trimmed.replace('A', 'X'));
+        System.out.println("Length: " + trimmed.length());
+        System.out.println("As text: " + String.valueOf(5));
+    }
+}
+```
+**Output**:
+```
+Trimmed: [AP Computer Science A]
+Starts with AP? true
+Contains 'Science'? true
+Ends with 'A'? true
+IgnoreCase match? true
+Replaced: XP Computer Science X
+Length: 23
+As text: 5
+```
+### Common Errors
+- **Forgetting `trim()`**: Input with leading spaces makes `startsWith("AP")` false even when it looks true.
+- **Confusing `replace` overloads**: `replace(char, char)` and `replace(String, String)` are different methods.
+- **`compareTo` direction**: `"A".compareTo("B")` is negative; students routinely flip the sign in their heads.
+
+## 9. More Math: round, floor, and ceil
+### Definition
+`Math.round`, `Math.floor`, and `Math.ceil` round or clamp `double`s. They are the respectable alternative to the `(int)(x + 0.5)` trick from [Unit 1](unit_1.md), and the exam does test the return types.
+### Methods and Return Types
+- `long Math.round(double x)`: Returns a **`long`**, not an `int`. `Math.round(float x)` returns an `int`.
+- `double Math.floor(double x)`: Largest integer `double` less than or equal to `x`.
+- `double Math.ceil(double x)`: Smallest integer `double` greater than or equal to `x`.
+- `int Math.abs(int x)` and `double Math.abs(double x)`: Overloaded absolute value.
+### Example Program
+```java
+public class MathRounding {
+    public static void main(String[] args) {
+        double gpa = 3.6;
+        System.out.println("Round: " + Math.round(gpa));        // 4 (a long)
+        System.out.println("Floor: " + Math.floor(gpa));        // 3.0
+        System.out.println("Ceil:  " + Math.ceil(gpa));         // 4.0
+        System.out.println("Round negative: " + Math.round(-3.6)); // -4
+        int dice = (int)(Math.random() * 6) + 1; // 1..6 inclusive
+        System.out.println("Die roll: " + dice);
+    }
+}
+```
+**Output** (die roll varies):
+```
+Round: 4
+Floor: 3.0
+Ceil:  4.0
+Round negative: -4
+Die roll: 4
+```
+### Common Errors
+- **Assigning `Math.round` to `int` without a cast**: `int x = Math.round(3.6);` fails because the result is a `long`. Use `(int) Math.round(3.6)` or declare `long`.
+- **Off-by-one in random ranges**: `(int)(Math.random() * 6)` gives 0-5; add 1 for 1-6.
+- **Forgetting both operands**: `(int)(Math.random() * (max - min + 1)) + min` is the full formula for `[min, max]`.
+
+## 10. Methods in Depth: Parameters, Overloading, and Pass-by-Value
+### Definition
+Java passes arguments **by value**: the method receives a copy. For primitives the copy is the value; for references the copy is the address. A method can never reassign the caller's variable, but it *can* mutate the object that a copied reference points to. This is the single most misunderstood fact in the unit.
+### Key Concepts
+- **Pass-by-value with primitives**: `void f(int x) { x = 99; }` does not change the caller's variable.
+- **Pass-by-value with references**: `void f(String s) { s = "x"; }` does not change the caller's reference, but `StringBuilder` mutation *does* show up.
+- **Method overloading**: Same name, different parameter lists (type or count). Return type alone does not distinguish overloads.
+- **Static vs. instance**: `static` methods belong to the class (`Math.abs`); instance methods belong to an object (`s.length()`).
+### Example Program
+```java
+public class PassByValueDemo {
+    public static void tryToChange(int x) {
+        x = 99; // only changes the local copy
+    }
+    public static void tryToChange(StringBuilder sb) {
+        sb.append(" changed"); // mutates the shared object
+    }
+    public static int bigger(int a, int b) { return a > b ? a : b; }
+    public static double bigger(double a, double b) { return a > b ? a : b; }
+    public static void main(String[] args) {
+        int score = 5;
+        tryToChange(score);
+        System.out.println("score is still " + score); // 5
+        StringBuilder name = new StringBuilder("Grace");
+        tryToChange(name);
+        System.out.println(name); // Grace changed
+        System.out.println(bigger(3, 7));     // 7 (int overload)
+        System.out.println(bigger(3.0, 7.5)); // 7.5 (double overload)
+    }
+}
+```
+**Output**:
+```
+score is still 5
+Grace changed
+7
+7.5
+```
+**TOP TIP**: Think of passing a reference like handing out a photocopy of a campus map. Scribbling a new route on your copy does not change the original map, but walking over to the lecture hall and repainting its door *does* change what everyone sees.
+### Common Errors
+- **Expecting primitives to change**: Assuming `tryToChange(score)` mutates `score`.
+- **Overloading by return type only**: `int f()` and `double f()` do not compile together.
+- **Calling a static method through an object**: `Math m = new Math();` is pointless; just use `Math.abs`.
+
+## 11. Trash Code Example: The Name Formatter
+### Trash Code Example
+A program that formats a first and last name into "Last, First", with a heroic amount of ceremony.
+```java
+public class TrashyNameFormatter {
+    public static void main(String[] args) {
+        String fullName = "Grace Hopper";
+        String result = "";
+        // Step 1: find the space, like no one has ever found a space before
+        int space = fullName.indexOf(" ");
+        // Step 2: pull out the first name with substring arithmetic
+        String first = fullName.substring(0, space);
+        // Step 3: pull out the last name with MORE substring arithmetic
+        String last = fullName.substring(space + 1, fullName.length());
+        // Step 4: uppercase the last name one character at a time
+        String upperLast = "";
+        for (int i = 0; i < last.length(); i++) {
+            upperLast = upperLast + Character.toUpperCase(last.charAt(i));
+        }
+        // Step 5: assemble with a loop that runs exactly once
+        for (int pass = 0; pass < 1; pass++) {
+            result = upperLast + ", " + first;
+        }
+        System.out.println("Formatted: " + result);
+        // Easter Egg: you just reimplemented toUpperCase() badly. Proud? You should be.
+    }
+}
+```
+**Output**:
+```
+Formatted: HOPPER, Grace
+```
+**Why It's Trash**: `last.toUpperCase() + ", " + first` does the whole job. The character-by-character uppercase loop rebuilds a `String` on every iteration (immutability strikes again), and the one-iteration assembly loop is pure theater. Correct output, maximum fuss, the house style.
+
+## 12. Practice Questions with Answers
+### Practice Questions
+1. **Code tracing**: What is printed?
+   ```java
+   String s = "APCSA";
+   System.out.println(s.substring(1, 4) + s.charAt(0));
+   ```
+   **Answer**: `PCSA` (`substring(1, 4)` is `"PCS"`, then `'A'`).
+2. **equals vs ==**: What is the value of `new String("A").equals("A")` and `new String("A") == "A"`?
+   **Answer**: `true` and `false`. `equals` compares content; `==` compares references.
+3. **Null safety**: Which is safer when `s` might be `null`: `s.equals("AP")` or `"AP".equals(s)`?
+   **Answer**: `"AP".equals(s)`. Calling a method on `null` throws `NullPointerException`.
+4. **Math rounding**: What is the declared type of `Math.round(3.6)` and what value does it hold?
+   **Answer**: `long`, value `4`. Assigning to `int` requires a cast.
+5. **Random range**: Write an expression for a random integer in `[10, 20]`.
+   **Answer**: `(int)(Math.random() * 11) + 10`.
+6. **Pass-by-value**: What is printed?
+   ```java
+   static void f(int x) { x = 10; }
+   public static void main(String[] a) { int n = 5; f(n); System.out.println(n); }
+   ```
+   **Answer**: `5`. Primitives are passed by value.
+
+## 13. Multiple Angles: Pseudocode and a Python Aside
+### Pseudocode Angle
+Generating a random integer in `[min, max]`, in language-agnostic form:
+```
+r <- a pseudo-random real in [0, 1)
+scaled <- r * (max - min + 1)
+result <- FLOOR(scaled) + min
+```
+`String` algorithms follow the same "walk the indices" pattern:
+```
+FOR i FROM 0 TO length(s) - 1
+    IF character at i is a delimiter THEN record i
+END FOR
+```
+### Python Aside (optional, Java stays canonical)
+Python hides most of this: `str` is immutable like Java `String`, `==` compares *content* (so the `equals` vs `==` trap simply does not exist), and `random.randint(min, max)` already includes both endpoints. The Java lesson about reference identity and explicit casts is exactly what Python saves you from, which is why you must still know it for the exam.
+```python
+# Python aside: same ideas, different syntax
+s = "APCSA"
+print(s[1:4] + s[0])          # PCSA, like substring + charAt
+print(s.upper())              # immutable: returns a new string
+from random import randint
+print(randint(1, 5))          # inclusive, no * (max-min+1) formula
+```
+Java remains canonical here; the aside only shows that the concepts are portable while the syntax and pitfalls are Java-specific.
+
+## 14. Connection to AP CS A Unit Three
+### Connection to AP CS A Unit Three
+Everything here feeds directly into [Unit 3](unit_3.md):
+- `String.equals()` returns a `boolean` used in `if` conditions.
+- `Math.random()` results are compared with relational operators to build ranges.
+- Wrapper `Boolean` values and comparison results become the conditions that control selection.
+- The methods you wrote become the boolean-returning helpers used in compound conditions.
+You cannot write a correct `if` statement until you can produce a trustworthy `boolean`, and that is this unit's job.
+
+---
+# [next](unit_3.md)

@@ -1,5 +1,11 @@
+---
+title: AP CS A Unit 3 - Boolean Expressions and If Statements
+---
 [Go back to home page](README.md)
-# [previous](unit_2.md)<-->[next](unit_4.md)
+# [previous](unit_2.md) <--> [next](unit_4.md)
+
+Looking for the new four-unit curriculum? See [New Unit 2](new_unit_2.md).
+
 # AP CS A Unit Three: Boolean Expressions and Conditional Statements
 ## 1. Boolean Expressions
 ### Definition
@@ -389,3 +395,143 @@ The following advanced concepts are intended for programmers seeking to deepen t
    System.out.println("Optimized: " + optimized); // false
    ```
    The optimized form may be clearer or more efficient in specific contexts, especially when combined with short-circuit evaluation.
+
+---
+
+## 8. Truth Tables and Operator Precedence
+### Definition
+A **truth table** lists every possible combination of operand values and the resulting expression value. It is the most reliable way to verify a compound condition, and the least trashy, because you cannot hand-wave your way through a table.
+### The Three Logical Operators
+| A | B | `A && B` | `A || B` | `!A` |
+| --- | --- | --- | --- | --- |
+| true | true | true | true | false |
+| true | false | false | true | false |
+| false | true | false | true | true |
+| false | false | false | false | true |
+### Precedence, Highest to Lowest
+1. Parentheses `()`
+2. Unary `!`, `++`, `--`
+3. Arithmetic `*`, `/`, `%`, then `+`, `-`
+4. Relational `<`, `>`, `<=`, `>=`
+5. Equality `==`, `!=`
+6. Logical `&&`
+7. Logical `||`
+8. Ternary `?:`
+**TOP TIP**: `!` binds tighter than the relational operators, so `!score > 5` is `(!score) > 5` and will not compile for an `int`. Write `!(score > 5)`; parentheses are not decoration here.
+### Example
+```java
+int score = 85;
+boolean a = score >= 90;         // false
+boolean b = score >= 80;         // true
+System.out.println(a && b);      // false
+System.out.println(a || b);      // true
+System.out.println(!(a && b));   // true
+System.out.println(!a || !b);    // true (De Morgan agrees)
+```
+### Common Errors
+- **Assuming `&&` and `||` have equal precedence**: They do not; `&&` binds tighter.
+- **Negating without parentheses**: `!a && b` is `(!a) && b`, not `!(a && b)`.
+
+## 9. Trash Code Example: The Grade If-Else Labyrinth
+### Trash Code Example
+A grading program that could be five lines but instead builds a maze of overlapping `if`s.
+```java
+public class TrashyGradeLabyrinth {
+    public static void main(String[] args) {
+        int score = 92;
+        String grade = "";
+        // Test every possible score range from 100 down to 0
+        if (score >= 100 && score <= 100) {
+            grade = "A";
+        }
+        if (score >= 90 && score < 100 && !(grade.equals("A"))) {
+            grade = "A";
+        }
+        if (score >= 80 && score < 90 && grade.equals("")) {
+            grade = "B";
+        }
+        if (score >= 70 && score < 80 && grade.equals("")) {
+            grade = "C";
+        }
+        if ((score < 70) && !(score >= 70) && grade.equals("")) {
+            grade = "F";
+        }
+        // A final safety net that can never fire
+        if (grade.equals("")) {
+            grade = "?";
+        }
+        System.out.println("Grade: " + grade);
+        // Easter Egg: congrats, you reimplemented else-if with extra steps
+    }
+}
+```
+**Output**:
+```
+Grade: A
+```
+**Why It's Trash**: Every condition here is a chain of redundant checks guarding `grade.equals("")`, which is what `else if` already does for free. The `score < 70 && !(score >= 70)` clause is a De Morgan puzzle whose answer is just `score < 70`. A single `if / else if / else` ladder (the one in Section 2) is shorter, clearer, and cannot silently assign `"?"`. This is the site's house style: correct output, maximum ceremony.
+
+## 10. Practice Questions with Answers
+### Practice Questions
+1. **Evaluate**: What is the value of `!(5 > 3 && 2 < 4)`?
+   **Answer**: `false`. The inner expression is `true`, and `!` flips it.
+2. **De Morgan**: Rewrite `!(x >= 5 || y < 10)` without a leading `!`.
+   **Answer**: `x < 5 && y >= 10`.
+3. **Short circuit**: With `int x = 0;`, is `x != 0 && 10 / x > 2` safe?
+   **Answer**: Yes. `x != 0` is `false`, so `10 / x` is never evaluated and no `ArithmeticException` occurs.
+4. **Ternary**: What is `String s = (7 % 2 == 0) ? "even" : "odd";`?
+   **Answer**: `"odd"` (`7 % 2` is `1`).
+5. **Code tracing**: What is printed?
+   ```java
+   int score = 75;
+   if (score >= 90) System.out.print("A");
+   else if (score >= 70) System.out.print("C");
+   else System.out.print("F");
+   System.out.println("!");
+   ```
+   **Answer**: `C!`
+6. **Precedence**: What is the value of `true || false && false`?
+   **Answer**: `true`. `&&` binds tighter, so this is `true || (false && false)`.
+
+## 11. Multiple Angles: Pseudocode and a Python Aside
+### Pseudocode Angle
+A grade ladder, in language-agnostic form:
+```
+IF score >= 90 THEN grade <- "A"
+ELSE IF score >= 80 THEN grade <- "B"
+ELSE IF score >= 70 THEN grade <- "C"
+ELSE grade <- "F"
+END IF
+```
+De Morgan's transformation, generally:
+```
+NOT (P AND Q)  <->  (NOT P) OR (NOT Q)
+NOT (P OR Q)   <->  (NOT P) AND (NOT Q)
+```
+### Python Aside (optional, Java stays canonical)
+Python spells the logical operators `and`, `or`, `not` and uses `elif`; short-circuit behavior is identical to Java's `&&` / `||`. The ternary looks like `a if cond else b` instead of `cond ? a : b`. The trap to watch: Python's chained comparison `0 <= score <= 100` is valid and convenient, while Java requires `score >= 0 && score <= 100`.
+```python
+# Python aside: same logic, different syntax
+score = 92
+if score >= 90:
+    grade = "A"
+elif score >= 80:
+    grade = "B"
+else:
+    grade = "F"
+status = "Pass" if score >= 60 else "Fail"
+eligible = not (score < 0 or score > 100)  # same as Java's !(score < 0 || score > 100)
+```
+Java remains canonical on this site; the aside only highlights that the concepts carry over while the symbols and the chained-comparison convenience do not.
+
+## 12. Connection to AP CS A Unit Four
+### Connection to AP CS A Unit Four
+Boolean expressions and conditionals are the engine of every loop in [Unit 4](unit_4.md):
+- A `for` loop's test condition is a `boolean` expression checked on every iteration.
+- `while` and `do-while` loops run *while* a condition is true, the same expressions you wrote here.
+- Searching and sorting algorithms compare values with relational operators and branch with `if`.
+- Short-circuit evaluation prevents out-of-bounds access inside loop conditions, exactly as it prevented division by zero above.
+Write clean conditions now and your loops will be clean; write the labyrinth from Section 9 and your loops will be a maze you cannot debug.
+
+---
+# [next](unit_4.md)

@@ -344,7 +344,7 @@ A **2D array** is an array of arrays, useful for grids, tables, and matrices.
 
 ```java
 int[][] grid = new int[3][4];          // 3 rows, 4 columns
-int[][] literal = {{1, 2}, {3, 4}};    // 2x2
+int[][] literal = { {1, 2}, {3, 4}};    // 2x2
 ```
 
 ### Accessing elements
@@ -447,7 +447,7 @@ public static boolean contains(int[][] grid, int target) {
 ```java
 public class RowSumTrash {
     public static void main(String[] args) {
-        int[][] grid = {{1, 2}, {3, 4}};
+        int[][] grid = { {1, 2}, {3, 4}};
         int rowSum = 0;                       // declared outside -- bug
         for (int row = 0; row < grid.length; row++) {
             for (int col = 0; col < grid[row].length; col++) {

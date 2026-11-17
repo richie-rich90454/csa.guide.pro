@@ -369,7 +369,7 @@ To further enhance your knowledge of loops, searching, and sorting, consider exp
 - **Example**: Iterating through rows and columns of a 2D array to calculate averages.  
 {% raw %}
 ```java
-int[][] grades = {{90, 85}, {88, 92}, {87, 89}};
+int[][] grades = { {90, 85}, {88, 92}, {87, 89}};
 for (int i = 0; i < grades.length; i++) {  
 	for (int j = 0; j < grades[i].length; j++) {  
 		System.out.print(grades[i][j] + " ");  

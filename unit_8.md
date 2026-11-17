@@ -228,7 +228,7 @@ Total of m1: 21
 1. **Code Tracing**: What does this print?
    {% raw %}
    ```java
-   int[][] x = {{1,2},{3,4}};
+   int[][] x = { {1,2},{3,4}};
    for(int[] row : x) {
        for(int v: row) System.out.print(v*2 + " ");
        System.out.println();
@@ -259,7 +259,7 @@ Below are practical examples that demonstrate how 2D arrays integrate with advan
   import java.util.Arrays;
   public class StreamFlatten {
       public static void main(String[] args) {
-          int[][] matrix = {{1,2,3},{4,5,6},{7,8,9}};
+          int[][] matrix = { {1,2,3},{4,5,6},{7,8,9}};
           int sum = Arrays.stream(matrix)
                           .flatMapToInt(Arrays::stream)
                           .sum();
@@ -333,8 +333,8 @@ Below are practical examples that demonstrate how 2D arrays integrate with advan
   Use `Arrays.deepToString()` and `Arrays.deepEquals()` for quick debugging and equality checks:
   {% raw %}
   ```java
-  int[][] a = {{1,2},{3,4}};
-  int[][] b = {{1,2},{3,4}};
+  int[][] a = { {1,2},{3,4}};
+  int[][] b = { {1,2},{3,4}};
   System.out.println(Arrays.deepToString(a));           // [[1, 2], [3, 4]]
   System.out.println(Arrays.deepEquals(a, b));          // true
   ```
@@ -367,7 +367,7 @@ public class RaggedTrash {
 ```java
 public class BoundTrash {
     public static void main(String[] args) {
-        int[][] grid = {{1, 2}, {3, 4}};
+        int[][] grid = { {1, 2}, {3, 4}};
         for (int r = 0; r <= grid.length; r++) {       // trash: <=
             for (int c = 0; c < grid[r].length; c++) {
                 System.out.print(grid[r][c] + " ");
@@ -408,7 +408,7 @@ public class GridMethods {
         return result;
     }
     public static void main(String[] args) {
-        int[][] scores = {{5, 4}, {3}};
+        int[][] scores = { {5, 4}, {3}};
         int[][] copyOfScores = copy(scores);
         zeroOut(copyOfScores);
         System.out.println(scores[0][0]);       // 5 -- original survived
@@ -472,7 +472,7 @@ Unit Eight generalizes the one-dimensional arrays of [Unit Six](unit_6.md) and t
 
 3. **Bug Fixing (from section 10, answered)**: The outer loop must be `i < 3`, not `i <= 3`. As written, `i == 3` accesses `a[3]`, which is out of bounds for a 3×3 array (valid rows 0–2).
 
-4. **Tracing**: For `int[][] g = {{1,2,3},{4,5,6}}`, what are `g.length`, `g[1].length`, and `g[1][0]`?
+4. **Tracing**: For `int[][] g = { {1,2,3},{4,5,6}}`, what are `g.length`, `g[1].length`, and `g[1][0]`?
    **Answer**: `2`, `3`, and `4`.
 
 5. **Ragged Reasoning**: With `int[][] r = new int[2][]; r[0] = new int[1]; r[1] = new int[3];`, what is `r[0].length` and does `r[0][1]` work?

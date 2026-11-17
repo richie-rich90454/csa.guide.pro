@@ -1,5 +1,8 @@
+---
+title: About Us - CSA Guide
+---
 ### About this project
-This is a public project initiated by a few students graduating from the 2020 class of AP Computer Science A and continued by a few students who might take the 2026-2027 class of AP Computer Science A.
+This is a public project initiated by a few students graduating from the 2020 class of AP Computer Science A and continued by a few students who might take the 2026-2027 class of AP Computer Science A. We now cover both the legacy ten-unit curriculum and the new four-unit curriculum in full detail - pick your path on the [home page](README.md).
 ### Contributor list
 1. One-Kingyo
 2. Ja-va1234

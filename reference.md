@@ -1,8 +1,14 @@
+---
+title: Reference - Trash Code Tips
+---
 [Go back to home page](README.md)
+
+> This is a legacy trash-code reference page. For the new four-unit curriculum, start at [New Unit 1](new_unit_1.md).
+
 ## Unit 3
 More tips on writing quality trash code
 
-### Tip 1——Use complicated structures
+### Tip 1 - Use complicated structures
 Trashing yourself is simple and easy. Get yourself distracted, addicted to your phone, not willing to work, and forcing yourself to work makes the best Trash conditions of yourself.
 
 ### Presequites to Trash your Code

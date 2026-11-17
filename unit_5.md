@@ -1,5 +1,11 @@
+---
+title: AP CS A Unit 5 - Crafting Classes
+---
 [Go back to home page](README.md)  
 # [previous](unit_4.md) <-- [next](unit_6.md)  
+**New curriculum equivalent**: This material now lives in [New Unit 3](new_unit_3.md).
+
+
 # AP CS A Unit Five: Crafting Classes
 ## 1. Structure of a Class
 A **class** in Java defines a custom data type, serving as a blueprint for objects by encapsulating **attributes (instance variables)** and **methods (behaviors)**. Classes model real-world entities, such as a student's academic profile, making them relatable for students.
@@ -79,7 +85,7 @@ Methods define a class's functionality, enabling actions like checking academic 
   ```
 ## 5.1 Method Decomposition
 ### Definition
-Method decomposition is the practice of breaking a complex method into smaller, more manageable methods. This improves code readability, maintainability, and reusability—key principles in AP CS A for writing clean, modular code.
+Method decomposition is the practice of breaking a complex method into smaller, more manageable methods. This improves code readability, maintainability, and reusability, key principles in AP CS A for writing clean, modular code.
 ### Why Decompose Methods?
 1. **Readability**: Smaller methods with descriptive names are easier to understand.
 2. **Reusability**: Common logic can be extracted into separate methods and reused.
@@ -290,3 +296,149 @@ Students can use JavaDoc to create professional documentation, a practical skill
   }
   ```
 ---
+## 10. Abstraction and Program Design
+
+### Definition
+**Abstraction** is hiding the details that do not matter and exposing only what does. The site mascot, the `AcademicProfile`, does not need a student's favorite lunch to compute a GPA. Leaving it out is abstraction; including it is trash code wearing a fake moustache.
+
+**Program design** is deciding, before you type, which classes and methods a problem needs. Nouns become classes (`Scholar`, `Course`); verbs become methods (`calculateGpa`, `enroll`). Skip this step and you get the academic version of a campus map with no lecture halls on it.
+
+### Key Notes
+- Abstraction is intentional omission, not forgetting.
+- A class with one clear responsibility is easy to test. This is the Single Responsibility Principle in plain clothes.
+- Encapsulation (`private` fields plus `public` methods) is abstraction enforced by the compiler.
+
+### Trash Code Example: no abstraction, just parallel arrays
+```java
+public class NoAbstractionTrash {
+    public static void main(String[] args) {
+        String[] names = {"Alan", "Grace"};
+        int[] apScores = {5, 4};
+        double[] gpas = {4.0, 3.8};
+        // keep three arrays in sync by sheer willpower
+        System.out.println(names[0] + " scored " + apScores[0] + " with GPA " + gpas[0]);
+    }
+}
+```
+**Output**:
+```
+Alan scored 5 with GPA 4.0
+```
+
+**Why It's Trash**: There is no `Scholar` class. Three parallel arrays must be kept in lockstep forever, and one careless insert in the wrong array scrambles the whole grade book. This is what happens when you design on the fly instead of designing a class. Yes, this is the campus map with no lecture halls.
+
+### Common Errors
+- Making every field `public` "for convenience." It is convenient right up until someone sets `gpa = 100.0` and the dean calls.
+
+---
+## 11. Passing and Returning Object References
+
+### Definition
+When you pass an **object reference** into a method, Java copies the *address*, not the object. The method can therefore change the object's state, but it cannot make the caller's variable point somewhere else. The same rule applies to arrays, which are objects too (see [Unit 6](unit_6.md)).
+
+```java
+public static void boostScore(Scholar s) {
+    s.setScholarGradeLevel(5);          // changes the caller's object
+}
+public static void reassign(Scholar s) {
+    s = new Scholar("Transfer", 12);    // only changes the local reference
+}
+```
+
+### Key Notes
+- **Primitives** are passed by value: an `int` parameter inside the method is a copy.
+- **References** are also passed by value, but the value copied is the address. Mutating the object sticks; reassigning the parameter does not.
+- Returning a reference hands the caller an address to the same object.
+
+### Common Errors
+- Believing `s = new Scholar(...)` inside a method reassigns the caller's variable. It does not. This is one of the most-tested, most-missed ideas on the whole exam.
+
+### Trash Code Example: reference wishful thinking
+```java
+public class ReferenceTrash {
+    static void tryToChange(int score, Scholar s) {
+        score = 99;                          // only the local copy
+        s.setScholarGradeLevel(1);            // the real object changes
+        s = new Scholar("Ghost", 12);         // only the local reference
+    }
+    public static void main(String[] args) {
+        int gpaPoints = 3;
+        Scholar real = new Scholar("Real", 3);
+        tryToChange(gpaPoints, real);
+        System.out.println(gpaPoints);                    // 3
+        System.out.println(real.getScholarName());        // Real
+        System.out.println(real.getScholarGradeLevel());  // 1
+    }
+}
+```
+**Output**:
+```
+3
+Real
+1
+```
+
+**Why It's Trash**: The method *looks* like it rewrites everything, but only the object mutation survives. Trash code keeps the reader guessing which variables are still real, exactly the confusion the exam is built to exploit.
+
+### Python aside (optional, Java stays canonical)
+Python passes object references the same way; it just spells the receiver `self` instead of `this`:
+```python
+class Scholar:
+    def __init__(self, name):
+        self.name = name
+```
+Same address-copied semantics. The exam uses Java, where forgetting `this` is a rite of passage.
+
+---
+## 12. Pseudocode Angle: Designing a Method
+
+```
+METHOD isHonorRoll(scholar)
+  IF scholar.gradeLevel >= 90 THEN
+    RETURN true
+  ELSE
+    RETURN false
+  END IF
+END METHOD
+```
+This is exactly the Java `isHonorRoll()` from Section 5 with the punctuation stripped. If you cannot say what a method does in pseudocode, you are not ready to write it in Java.
+
+---
+## 13. Connection to AP CS A Unit Five
+
+### Curriculum Context
+Unit Five is the original home of class design: fields, constructors, methods, decomposition, `static`, scope, access modifiers, and `this`. The [New Unit 3](new_unit_3.md) guide renames parts of this "abstraction and program design," but the Java is unchanged.
+
+### Relevance
+Every collection algorithm in [Unit 6](unit_6.md) and [New Unit 4](new_unit_4.md) operates on objects you design here. Bad classes make bad collections. Trash in, trash out.
+
+### Practice Questions
+1. **Trace**: What is printed?
+   ```java
+   Scholar s = new Scholar("Alan", 95);
+   s.setScholarGradeLevel(92);
+   System.out.println(s.isHonorRoll());
+   ```
+   **Answer**: `true` (92 is at least 90).
+2. **Identify the error**: Why does this fail?
+   ```java
+   public void Scholar() { }
+   ```
+   **Answer**: A constructor cannot have a return type, not even `void`. This is just a badly named method, and Java supplies a default constructor instead.
+3. **References**: After `tryToChange(gpaPoints, real)` above, what is `real.getScholarGradeLevel()`?
+   **Answer**: `1`. The object was mutated; the reassignment inside the method did not escape.
+4. **Static**: Three `Scholar` objects exist. How many copies of `totalScholars` are there?
+   **Answer**: One. Static fields are shared by the class.
+5. **Design exercise**: Design a `Course` class with private fields for name and capacity, a constructor, getters, and an `isFull()` method. Add validation in the setter so capacity cannot be negative.
+
+---
+## 14. Best Practices
+- Keep fields `private`; expose them through accessors and validating mutators.
+- Give each method one job. If a method needs a comment to explain what it does, decompose it.
+- Initialize **every** field in **every** constructor, even the no-arg one.
+- Use `this` whenever a parameter shadows a field.
+- Call static members through the class name (`Scholar.getTotalScholars()`), never through an object.
+- When you write a helper that mutates an object, name it as a verb (`boostScore`, not `change`).
+
+---
+# [next](unit_6.md)

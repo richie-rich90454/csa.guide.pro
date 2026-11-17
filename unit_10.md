@@ -1,5 +1,12 @@
+---
+title: AP CS A Unit 10 - Recursion
+---
 [Go back to home page](README.md)
-# [previous](unit_9.md)
+# [previous](unit_9.md)<-->[next](README.md)
+> **New curriculum equivalent**: This material now lives in [New Unit 4](new_unit_4.md) (the four-unit curriculum that launched in 2025-26). Same Java, different filing cabinet - the College Board just re-sorted the drawers.
+
+**TOP TIP**: Recursion is the campus map that points to another campus map that points to another lecture hall - until one map finally says "you are here" (the base case). Forget that final sign and you wander the same hallway until the `StackOverflowError` bounces you out. The new exam is explicit about **recursive searching and sorting**, so binary search and merge sort are no longer "nice to know" - they are fair game.
+
 # AP CS A Unit Ten: Recursion
 You either get it or you don't, try harder
 # Recursion, Seriously
@@ -410,3 +417,191 @@ The following advanced concepts extend recursion beyond AP CS A, offering deeper
   **Output**:
   ```
   Permutations of 'ABC': [ABC, ACB, BAC, BCA, CAB, CBA]
+  ```
+---
+## 9. Recursive Searching in Depth
+### Definition
+The current exam calls out **recursive searching** explicitly. The classic is recursive binary search: because each step halves the remaining range, it is \(O(\log n)\) whether you write it with a loop or with recursion. The recursion just replaces the `while` loop with a call that carries the new bounds.
+
+### Recursive Binary Search, Fully Correct
+```java
+public static int binarySearch(int[] a, int target, int low, int high) {
+    if (low > high) return -1;                       // base case: not found
+    int mid = low + (high - low) / 2;                 // avoids overflow for huge indices
+    if (a[mid] == target) return mid;                 // base case: found
+    if (a[mid] < target)
+        return binarySearch(a, target, mid + 1, high); // search right half
+    else
+        return binarySearch(a, target, low, mid - 1);  // search left half
+}
+```
+Call it as `binarySearch(a, target, 0, a.length - 1)`. Two base cases: the bound-crossing case (not found) and the exact-match case (found). Every recursive call strictly shrinks the range, so termination is guaranteed.
+
+### Tracing a Search
+For `int[] a = {2, 4, 6, 8, 10}` and `target = 8`:
+1. `low=0, high=4, mid=2` → `a[2]=6 < 8` → recurse on `low=3, high=4`.
+2. `low=3, high=4, mid=3` → `a[3]=8` → return `3`.
+
+Two comparisons. That is the whole point of halving.
+
+### Recursive Linear Search (the \(O(n)\) cousin)
+```java
+public static int linearSearch(int[] a, int target, int i) {
+    if (i >= a.length) return -1;              // base case: ran off the end
+    if (a[i] == target) return i;              // base case: found
+    return linearSearch(a, target, i + 1);     // recursive case: next index
+}
+```
+Call it with `linearSearch(a, target, 0)`. Works on unsorted data, but visits elements one at a time - trash-code slow compared to binary search on sorted input.
+
+### Trash Code Example - the broken binary search
+```java
+public class SearchTrash {
+    public static int bad(int[] a, int target, int low, int high) {
+        int mid = (low + high) / 2;
+        if (a[mid] == target) return mid;
+        if (a[mid] < target)
+            return bad(a, target, mid, high);   // trash: passes mid, not mid + 1
+        return bad(a, target, low, mid);         // trash: passes mid, not mid - 1
+    }
+    public static void main(String[] args) {
+        int[] a = {2, 4, 6};
+        System.out.println(bad(a, 5, 0, 2));     // target not present
+    }
+}
+```
+**Why It's Trash**: There is no `low > high` base case, and the recursive calls reuse `mid` instead of `mid + 1` / `mid - 1`. With no progress and no exit, the method recurses forever until `StackOverflowError` - or reads an out-of-range index first. Trash code that never returns an answer is still trash code.
+
+### Common Errors
+- Forgetting the `low > high` base case - searching for a missing target loops forever.
+- Passing `mid` instead of `mid + 1` / `mid - 1` - the range never shrinks.
+- Running binary search on unsorted data - may return `-1` even when the target exists.
+---
+## 10. Recursive Sorting in Depth
+### Definition
+**Recursive merge sort** is the poster child for divide-and-conquer: split the array into halves, recursively sort each half, then merge the sorted halves. Its recurrence is \(T(n) = 2T(n/2) + O(n)\), which solves to \(O(n \log n)\) - faster than selection sort or insertion sort (\(O(n^2)\)) on large inputs.
+
+### Recursive Merge Sort
+```java
+public static void mergeSort(int[] a) {
+    if (a.length <= 1) return;                       // base case: already sorted
+    int mid = a.length / 2;
+    int[] left = new int[mid];
+    int[] right = new int[a.length - mid];
+    for (int i = 0; i < mid; i++) left[i] = a[i];
+    for (int i = mid; i < a.length; i++) right[i - mid] = a[i];
+    mergeSort(left);
+    mergeSort(right);
+    merge(a, left, right);
+}
+
+private static void merge(int[] a, int[] left, int[] right) {
+    int i = 0, j = 0, k = 0;
+    while (i < left.length && j < right.length) {
+        if (left[i] <= right[j]) a[k++] = left[i++];
+        else a[k++] = right[j++];
+    }
+    while (i < left.length) a[k++] = left[i++];
+    while (j < right.length) a[k++] = right[j++];
+}
+```
+The base case `a.length <= 1` is what stops the recursion. The two `while` loops after the main loop copy any leftover elements - forget them and your sorted array ends in a trail of zeros.
+
+### Recursive Quick Sort
+```java
+public static void quickSort(int[] a, int low, int high) {
+    if (low >= high) return;                 // base case: 0 or 1 element
+    int p = partition(a, low, high);
+    quickSort(a, low, p - 1);
+    quickSort(a, p + 1, high);
+}
+
+private static int partition(int[] a, int low, int high) {
+    int pivot = a[high];
+    int i = low - 1;
+    for (int j = low; j < high; j++) {
+        if (a[j] <= pivot) {
+            i++;
+            int temp = a[i]; a[i] = a[j]; a[j] = temp;
+        }
+    }
+    int temp = a[i + 1]; a[i + 1] = a[high]; a[high] = temp;
+    return i + 1;
+}
+```
+Call with `quickSort(a, 0, a.length - 1)`. Average case \(O(n \log n)\); worst case \(O(n^2)\) when the pivot is consistently poor (e.g., already-sorted data with the last element as pivot).
+
+### Tracing Merge Sort
+For `a = {3, 1, 2}`:
+1. Split into `{3}` and `{1, 2}`.
+2. Split `{1, 2}` into `{1}` and `{2}`.
+3. Merge `{1}` and `{2}` → `{1, 2}`.
+4. Merge `{3}` and `{1, 2}` → `{1, 2, 3}`.
+
+Each level of the recursion tree doubles the number of subproblems and halves the work per subproblem - that is where \(\log n\) levels come from.
+
+### Pseudocode Angle
+```
+FUNCTION mergeSort(a):
+    IF length(a) <= 1: RETURN a
+    left = mergeSort(first half of a)
+    right = mergeSort(second half of a)
+    RETURN merge(left, right)
+END FUNCTION
+```
+The recursive structure is obvious in pseudocode; the subtle parts in Java are the index arithmetic and the leftover-copy loops in `merge`.
+
+### Python aside (optional, Java stays canonical)
+```python
+def merge_sort(a):
+    if len(a) <= 1:
+        return a
+    mid = len(a) // 2
+    left = merge_sort(a[:mid])
+    right = merge_sort(a[mid:])
+    return merge(left, right)
+```
+Python's slicing hides the index bookkeeping Java makes you write. Same algorithm, same base case - the exam is still Java.
+
+### Common Errors
+- Base case `a.length == 1` instead of `<= 1` - an empty array sneaks through and crashes.
+- Forgetting to copy leftover elements after the main merge loop.
+- Recursing on `mid` instead of `mid + 1` in quick sort, creating overlapping partitions.
+- Confusing the recursive merge sort's \(O(n \log n)\) with selection sort's \(O(n^2)\).
+---
+## 11. Connection, Practice, and Extensions
+### Connection to AP CS A Unit Ten
+Unit Ten's recursion now sits inside [New Unit 4](new_unit_4.md) on the current exam, where recursive searching and sorting are named topics alongside iterative binary search and merge sort. The Java is identical - base case, recursive case, progress toward termination. The campus map is the same; only the syllabus changed.
+
+### Practice Questions
+1. **Trace**: For `binarySearch(a, 8, 0, 4)` on `a = {2,4,6,8,10}`, how many recursive calls (including the first) occur before returning `3`?
+   **Answer**: 2 - the first call finds `6` and recurses; the second finds `8`.
+
+2. **Base cases**: What are the two base cases of recursive binary search?
+   **Answer**: `low > high` (not found, return `-1`) and `a[mid] == target` (found, return `mid`).
+
+3. **Complexity**: State the average time complexity of merge sort and of selection sort.
+   **Answer**: Merge sort \(O(n \log n)\); selection sort \(O(n^2)\).
+
+4. **Bug Fix**: A student writes `if (a.length == 1) return;` in `mergeSort`. What input breaks it?
+   **Answer**: An empty array (`length == 0`) - no base case matches, so it recurses on empty halves forever. Use `<= 1`.
+
+5. **Write**: Implement `public static int recSum(int[] a, int i)` returning the sum of `a[i..end]`, with base case `i == a.length`.
+   **Answer sketch**: `if (i == a.length) return 0; return a[i] + recSum(a, i + 1);`
+
+6. **Coding Exercise**: Write recursive binary search for an `ArrayList<Integer>` (use `size()` and `get()`), then state why the array version is simpler.
+
+### Extensions
+- **Recurrence relations**: Merge sort's \(T(n) = 2T(n/2) + O(n)\) is the formal reason it is \(O(n \log n)\) - a first taste of the Master Theorem.
+- **Recursion vs stack depth**: Each call adds a stack frame; recursive merge sort uses \(O(\log n)\) depth, while recursive linear search uses \(O(n)\).
+- **Memoization**: The `FibonacciMemo` example in section 8.2 turns exponential recursion into linear time - the bridge to dynamic programming.
+- **Tail recursion**: Java does not optimize it (see section 8.1), so deep tail-recursive code can still overflow - a good reason to prefer iteration in production.
+
+### Best Practices
+- Name the base case first in your head, then write the recursive case - if you cannot name it, do not write the method.
+- Guarantee progress: each call must strictly reduce the problem (`mid + 1`/`mid - 1`, `n - 1`, `i + 1`).
+- Use a helper method with extra parameters (`low`, `high`) to hide implementation details from the caller.
+- Add a temporary `System.out.println` trace while debugging recursion; remove it before submission (trash code has no place on an exam).
+- Prefer iteration for simple linear work; reserve recursion for genuinely self-similar problems like searching, sorting, and trees.
+
+# [next](README.md)

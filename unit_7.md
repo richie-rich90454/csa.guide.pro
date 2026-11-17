@@ -1,5 +1,12 @@
+---
+title: AP CS A Unit 7 - ArrayLists
+---
 [Go back to home page](README.md)
 # [previous](unit_6.md)<-->[next](unit_8.md)
+> **New curriculum equivalent**: This material now lives in [New Unit 4](new_unit_4.md) (the four-unit curriculum that launched in 2025-26). Same Java, different filing cabinet - the College Board just re-sorted the drawers.
+
+**TOP TIP**: An `ArrayList` is a lecture hall that adds seats when you need them. A plain array is a lecture hall with a fixed number of chairs: show up with one extra student and somebody is standing in the aisle (or you get an `IndexOutOfBoundsException`). The exam lives on `size()`, `get()`, and `add()` - know them cold, or write trash code under pressure like the rest of us.
+
 # AP CS A Unit Seven: ArrayLists
 ## 1. Introduction to ArrayLists
 ### Definition
@@ -214,3 +221,246 @@ Unit Seven builds on arrays (Unit Six) by introducing `ArrayList` as a more flex
 - **Sorting**: Use `Collections.sort(list)` (requires `import java.util.Collections;`) to sort elements.
   - Example: `Collections.sort(apCourses);` sorts courses alphabetically.
 - **Comparison to Arrays**: Arrays are faster for fixed-size data but lack flexibility; `ArrayList` is preferred for dynamic data in AP applications.
+---
+## 5. ArrayList Methods in Depth
+### Definition
+The `ArrayList` class exposes more than `add`, `get`, `set`, `remove`, and `size`. The AP CS A subset also includes `indexOf`, `lastIndexOf`, `isEmpty`, `clear`, and `contains`. Knowing the exact return types and overloads is what separates a 5 from a "close enough" 3 - and, importantly, what lets you write *precise* trash code instead of accidental trash code.
+
+### Method Reference Table
+| Method | Return type | What it does |
+| --- | --- | --- |
+| `boolean add(E obj)` | `boolean` | Appends to the end (always returns `true`) |
+| `void add(int i, E obj)` | `void` | Inserts at index `i`, shifting later elements right |
+| `E get(int i)` | `E` | Returns the element at `i` |
+| `E set(int i, E obj)` | `E` | Replaces element at `i`, returns the old value |
+| `E remove(int i)` | `E` | Removes and returns the element at index `i` |
+| `boolean remove(E obj)` | `boolean` | Removes the first element equal to `obj` |
+| `int size()` | `int` | Number of elements |
+| `boolean contains(E obj)` | `boolean` | `true` if some element `.equals(obj)` |
+| `int indexOf(E obj)` | `int` | First index where `.equals(obj)`, or `-1` |
+| `int lastIndexOf(E obj)` | `int` | Last index where `.equals(obj)`, or `-1` |
+| `boolean isEmpty()` | `boolean` | `true` when `size() == 0` |
+| `void clear()` | `void` | Removes every element |
+
+### The Two Overloads That Bite Everyone
+`remove(int)` and `remove(Object)` are overloaded. With `ArrayList<String>`, `list.remove(2)` removes by index while `list.remove("AP Physics")` removes by value. With `ArrayList<Integer>`, the distinction is a genuine trap: `list.remove(2)` removes the element at **index** 2, not the **value** `2`. To remove the value `2`, write `list.remove(Integer.valueOf(2))`.
+
+### Trash Code Example - the Integer removal trap
+```java
+import java.util.ArrayList;
+public class RemoveTrash {
+    public static void main(String[] args) {
+        ArrayList<Integer> apScores = new ArrayList<Integer>();
+        apScores.add(5);
+        apScores.add(4);
+        apScores.add(3);
+        apScores.remove(2);          // trash: removes index 2 (the 3), not the value 2
+        System.out.println(apScores); // [5, 4] -- "wait, where did the 3 go?"
+        apScores.remove(5);          // trash again: index 5 is out of bounds
+        System.out.println(apScores); // never reached -- crash
+    }
+}
+```
+**Output** (up to the crash):
+```
+[5, 4]
+```
+**Why It's Trash**: `remove(2)` on an `ArrayList<Integer>` removes by index, not by value - a classic trash-code surprise. Then `remove(5)` throws `IndexOutOfBoundsException` because there is no index 5. If you meant to delete the score `5`, write `apScores.remove(Integer.valueOf(5))`. That `Integer.valueOf(...)` is the non-obvious why: it forces Java to pick the `remove(Object)` overload instead of `remove(int)`.
+
+### Common Errors
+- Assuming `remove(x)` removes the *value* `x` when the list holds `Integer` - it removes the element at *index* `x`.
+- Calling `set(i, value)` on an empty list - no index `0` exists; use `add` instead.
+- Confusing `size()` (a method) with `length` (an array field).
+- Expecting `indexOf` to return `0` when the item is missing - it returns `-1`.
+---
+## 6. Wrapper Classes, Autoboxing, and Unboxing
+### Definition
+`ArrayList` can only hold objects, never primitives. Java silently converts between `int` and `Integer` through **autoboxing** and **unboxing**. This is convenient, and also a reliable source of trash code - the kind that compiles cleanly and fails at runtime, which is the exam's favorite flavor.
+
+### The Wrapper Classes
+| Primitive | Wrapper |
+| --- | --- |
+| `int` | `Integer` |
+| `double` | `Double` |
+| `boolean` | `Boolean` |
+| `char` | `Character` |
+| `long` | `Long` |
+| `float` | `Float` |
+| `short` | `Short` |
+| `byte` | `Byte` |
+
+- **Autoboxing**: `int gpa = 5; list.add(gpa);` wraps `5` as an `Integer`.
+- **Unboxing**: `int first = list.get(0);` unwraps the `Integer` back to `int`.
+- Constants: `Integer.MAX_VALUE`, `Integer.MIN_VALUE`.
+- Parsing: `Integer.parseInt("42")` returns `42`; `Integer.toString(42)` returns `"42"`.
+
+### TOP TIP
+Java caches `Integer` objects for values `-128` to `127`. So `Integer a = 5; Integer b = 5; a == b` is `true` - but for `1000` it is `false`. **Always compare wrapper objects with `.equals()`, never `==`.** The cache is a trick question waiting to happen, and "it worked for small numbers" is the worst kind of evidence.
+
+### Common Errors
+- Unboxing `null`: `Integer x = null; int y = x;` throws `NullPointerException`.
+- Writing `ArrayList<int>` - does not compile; use `ArrayList<Integer>`.
+- Comparing wrapper objects with `==` and getting results that change depending on the value's size.
+
+### Python aside (optional, Java stays canonical)
+Python's `list` holds any object with no wrappers needed:
+```python
+scores = [5, 4, 3]      # plain ints, no Integer wrapper
+scores.append(2)
+avg = sum(scores) / len(scores)
+```
+Java forces the wrapper choice on you; the AP exam is in Java, so keep the wrappers straight. Python is the easy mode you are not allowed to play on test day.
+---
+## 7. Passing ArrayLists to Methods
+### Definition
+An `ArrayList` is an object, so passing it to a method passes a *reference*. Mutations inside the method affect the original list. This is the campus map / lecture hall idea again: the parameter holds the address of the same lecture hall, not a photocopy of the building. Hand the map to a friend and they can rearrange the chairs - you will see the change when you arrive.
+
+### Example
+```java
+import java.util.ArrayList;
+public class ArrayListMethods {
+    public static void addBonus(ArrayList<Integer> scores) {
+        for (int i = 0; i < scores.size(); i++) {
+            scores.set(i, scores.get(i) + 1); // mutate in place
+        }
+    }
+    public static ArrayList<Integer> copyOf(ArrayList<Integer> scores) {
+        ArrayList<Integer> copy = new ArrayList<Integer>();
+        for (Integer s : scores) {
+            copy.add(s);
+        }
+        return copy; // a new lecture hall, same students
+    }
+    public static void main(String[] args) {
+        ArrayList<Integer> apScores = new ArrayList<Integer>();
+        apScores.add(4);
+        apScores.add(3);
+        addBonus(apScores);
+        System.out.println(apScores);        // [5, 4] -- original changed
+        ArrayList<Integer> copy = copyOf(apScores);
+        copy.clear();
+        System.out.println(apScores);        // [5, 4] -- original survived
+        System.out.println(copy);            // []
+    }
+}
+```
+**Output**:
+```
+[5, 4]
+[5, 4]
+[]
+```
+
+### Pseudocode Angle
+```
+FUNCTION addBonus(list):
+    FOR i FROM 0 TO list.size() - 1:
+        list.set(i, list.get(i) + 1)
+    END FOR
+END FUNCTION
+```
+Pseudocode hides the reference subtlety - in Java, whether a method mutates the original depends on whether you mutate the object or replace the reference. That distinction is pure Java, and the exam tests it relentlessly.
+
+### Common Errors
+- Expecting a method to leave the list unchanged when it calls `set`, `add`, or `remove`.
+- Reassigning the parameter (`scores = new ArrayList<Integer>();`) and thinking the caller's list changed - it did not. You only redirected the local campus map; the original lecture hall is untouched.
+---
+## 8. More Trash Code Examples
+### Trash Code Example - the off-by-one average
+```java
+import java.util.ArrayList;
+public class AverageTrash7 {
+    public static void main(String[] args) {
+        ArrayList<Integer> studyHours = new ArrayList<Integer>();
+        studyHours.add(10);
+        studyHours.add(15);
+        studyHours.add(5);
+        int total = 0;
+        for (int i = 0; i <= studyHours.size(); i++) { // trash: <= walks one too far
+            total += studyHours.get(i);               // crashes at i == size()
+        }
+        System.out.println("Average: " + total / studyHours.size()); // integer division too
+    }
+}
+```
+**Why It's Trash**: Two trash-code classics in one loop. `i <= studyHours.size()` walks one index too far and throws `IndexOutOfBoundsException`; even if it survived, `total / size()` uses integer division and truncates the GPA-style average. Fix: use `<` and cast to `double`. This is the exact bug the exam hides in plain sight, and the one you will write at 2 a.m. if you are not careful.
+
+### Trash Code Example - four nested loops to find one score
+```java
+import java.util.ArrayList;
+public class NestedTrash7 {
+    public static void main(String[] args) {
+        ArrayList<Integer> apScores = new ArrayList<Integer>();
+        apScores.add(5);
+        apScores.add(4);
+        apScores.add(3);
+        boolean hasFive = false;
+        for (int i = 0; i < 1; i++) {                  // trash: loop that runs once
+            for (int j = 0; j < apScores.size(); j++) {
+                for (int k = 0; k < 1; k++) {
+                    for (int m = 0; m < 1; m++) {
+                        if (apScores.get(j) == 5) hasFive = true;
+                    }
+                }
+            }
+        }
+        System.out.println("Has a 5: " + hasFive);
+    }
+}
+```
+**Why It's Trash**: Four nested loops to do the work of `apScores.contains(5)`. The three single-iteration loops are pure scaffolding - a Rube Goldberg machine made of trash code. Correct output, maximum confusion, zero GPA points for style.
+---
+## 9. Connection, Practice, and Extensions
+### Connection to AP CS A Unit Seven
+Unit Seven converts the fixed-size arrays of [Unit Six](unit_6.md) into a resizable collection. The legacy exam tested `ArrayList` heavily in multiple choice and in the free-response questions that asked you to build or filter a list. In the current four-unit curriculum the same Java lives in [New Unit 4](new_unit_4.md), where it is worth a large slice of the MC and the entire ArrayList FRQ. Nothing about the syntax changed - only the chapter number. The trash code, unfortunately, is backward compatible.
+
+### Practice Questions
+1. **Code Tracing**: What is printed?
+   ```java
+   ArrayList<Integer> scores = new ArrayList<Integer>();
+   scores.add(3);
+   scores.add(4);
+   scores.add(3);
+   System.out.println(scores.indexOf(3));
+   System.out.println(scores.lastIndexOf(3));
+   System.out.println(scores.remove(Integer.valueOf(3)));
+   System.out.println(scores);
+   ```
+   **Answer**: `0`, then `2`, then `true`, then `[4, 3]`. The first `3` (index 0) is removed by value because of `Integer.valueOf(3)`.
+
+2. **Error Identification**: Why does this crash?
+   ```java
+   ArrayList<Integer> list = new ArrayList<Integer>();
+   list.add(10);
+   for (Integer x : list) {
+       list.remove(0);
+   }
+   ```
+   **Answer**: Removing during an enhanced `for` loop throws `ConcurrentModificationException`. Traverse backward with an index loop instead: `for (int i = list.size() - 1; i >= 0; i--) list.remove(i);`.
+
+3. **Method Writing**: Write `public static int maxScore(ArrayList<Integer> scores)` returning the largest score, or `Integer.MIN_VALUE` for an empty list.
+   **Answer sketch**: Initialize `int max = Integer.MIN_VALUE;`, loop with `for (Integer s : scores) if (s > max) max = s;`, return `max`. Initializing `max` to `0` would be trash code when every score is negative - but AP scores are 1–5, so you can get away with it here. Do not get cocky.
+
+4. **Output Prediction**: Given `ArrayList<String> courses`, what does `courses.add(0, "AP CS A")` do if the list is empty?
+   **Answer**: It adds `"AP CS A"` at index 0, which is also `size()` - perfectly legal. Inserting at any index greater than `size()` throws `IndexOutOfBoundsException`.
+
+5. **Reference Semantics**: A method does `list.clear()` on a parameter. Does the caller's list change?
+   **Answer**: Yes. The parameter is a campus map to the same lecture hall; `clear()` empties the original.
+
+6. **Coding Exercise**: Read AP scores 1–5 into an `ArrayList<Integer>`, drop every score below 3 with a backward index loop, and print the average of what remains. Guard against an empty list so you do not divide by zero - that is the "handling empty lists" trap from question 3 of the earlier Practice block.
+
+### Extensions
+- **Sorting**: `Collections.sort(list)` sorts an `ArrayList<String>` alphabetically or an `ArrayList<Integer>` numerically (import `java.util.Collections`). This is `O(n log n)` and beats any trash-code bubble sort you write by hand.
+- **`ArrayList` of `ArrayList`**: `ArrayList<ArrayList<Integer>>` models a gradebook with a list per student. Access with `gradebook.get(row).get(col)` - twice the index arithmetic, twice the chance of a trash-code off-by-one.
+- **Arrays vs `ArrayList`**: Arrays are faster and hold primitives; `ArrayList` resizes and holds objects. When the size is unknown (most real data), `ArrayList` wins.
+- **Capacity**: `new ArrayList<Integer>(100)` preallocates room for 100 elements, avoiding repeated resizing. Micro-optimization, but it is the kind of detail that makes code look like you know what you are doing.
+
+### Best Practices
+- Use generics (`ArrayList<String>`) so the compiler catches type errors before the exam proctor catches you.
+- Check `size()` before `get()`/`set()`/`remove(int)` to avoid `IndexOutOfBoundsException`.
+- Remove elements with a backward index loop, never an enhanced `for` loop.
+- Use `.equals()` for wrapper/String comparison; reserve `==` for primitives and for comparing an object to `null`.
+- Return a defensive copy (`copyOf`) when a method must not let the caller's list be mutated - a real lecture hall you can lock.
+- Name lists by content (`apScores`, not `list`) - your future self grading your own trash code will thank you.
+
+# [next](unit_8.md)

@@ -1,5 +1,12 @@
+---
+title: AP CS A Unit 8 - Two-Dimensional Arrays
+---
 [Go back to home page](README.md)
 # [previous](unit_7.md)<-->[next](unit_9.md)
+> **New curriculum equivalent**: This material now lives in [New Unit 4](new_unit_4.md) (the four-unit curriculum that launched in 2025-26). Same Java, different filing cabinet - the College Board just re-sorted the drawers.
+
+**TOP TIP**: A 2D array is a campus map drawn as a grid of lecture halls: `grid[r]` picks the row (the hallway), `grid[r][c]` picks the seat. `grid.length` is the number of hallways; `grid[r].length` is the number of seats in that one hallway. Ask the wrong hallway how many seats it has and you get a trash-code surprise on a ragged array.
+
 # AP CS A Unit Eight: Two-Dimensional Arrays
 ## 1. Definition and Overview
 ### Definition
@@ -332,4 +339,163 @@ Below are practical examples that demonstrate how 2D arrays integrate with advan
   System.out.println(Arrays.deepEquals(a, b));          // true
   ```
   {% endraw %}
-These examples bridge 2D arrays with modern Java techniques, GUI frameworks, performance analysis, and image processing—extending your skills well beyond the AP curriculum.
+These examples bridge 2D arrays with modern Java techniques, GUI frameworks, performance analysis, and image processing - extending your skills well beyond the AP curriculum.
+---
+## 12. Trash Code Examples
+### Trash Code Example - assuming every row is the same length
+```java
+public class RaggedTrash {
+    public static void main(String[] args) {
+        int[][] grades = new int[3][];
+        grades[0] = new int[]{5, 4};
+        grades[1] = new int[]{3};
+        grades[2] = new int[]{5, 4, 2};
+        int cols = grades[0].length;   // trash: assumes row 0 defines every row
+        int total = 0;
+        for (int r = 0; r < grades.length; r++) {
+            for (int c = 0; c < cols; c++) {
+                total += grades[r][c]; // crashes on r=1,c=1 and r=2 went unread
+            }
+        }
+        System.out.println("Total: " + total);
+    }
+}
+```
+**Why It's Trash**: `grades[0].length` is `2`, but row 1 has only `1` column. The loop throws `ArrayIndexOutOfBoundsException` at `grades[1][1]`. The whole point of a ragged array is that rows differ - use `grades[r].length` for the inner bound every time. Trash code assumes the first row speaks for all of them; it never does.
+
+### Trash Code Example - off-by-one in the outer loop
+```java
+public class BoundTrash {
+    public static void main(String[] args) {
+        int[][] grid = {{1, 2}, {3, 4}};
+        for (int r = 0; r <= grid.length; r++) {       // trash: <=
+            for (int c = 0; c < grid[r].length; c++) {
+                System.out.print(grid[r][c] + " ");
+            }
+        }
+    }
+}
+```
+**Why It's Trash**: The outer loop reaches `r == grid.length`, and `grid[r]` throws `ArrayIndexOutOfBoundsException`. Two dimensions means two chances to get the bound wrong - use `< grid.length` on the rows and `< grid[r].length` on the columns, and never reuse row 0's length for the rest.
+
+### Common Errors
+- Using `<=` on either dimension - valid indices stop at `length - 1`.
+- Reading `grid[0].length` when rows are ragged.
+- Swapping indices as `grid[c][r]` - silently reads the wrong cell (or crashes) because the dimensions differ in general.
+---
+## 13. 2D Arrays and Methods
+### Definition
+A 2D array is an object, so passing it to a method passes a *reference*. There is one outer array holding references to row arrays, and mutating any cell mutates the original grid. The campus map points to the lecture hall, and the lecture hall has numbered seats you can rearrange from anywhere you hold the map.
+
+### Example
+```java
+public class GridMethods {
+    public static void zeroOut(int[][] grid) {
+        for (int r = 0; r < grid.length; r++) {
+            for (int c = 0; c < grid[r].length; c++) {
+                grid[r][c] = 0; // mutates the caller's grid
+            }
+        }
+    }
+    public static int[][] copy(int[][] grid) {
+        int[][] result = new int[grid.length][];
+        for (int r = 0; r < grid.length; r++) {
+            result[r] = new int[grid[r].length];
+            for (int c = 0; c < grid[r].length; c++) {
+                result[r][c] = grid[r][c];
+            }
+        }
+        return result;
+    }
+    public static void main(String[] args) {
+        int[][] scores = {{5, 4}, {3}};
+        int[][] copyOfScores = copy(scores);
+        zeroOut(copyOfScores);
+        System.out.println(scores[0][0]);       // 5 -- original survived
+        System.out.println(copyOfScores[0][0]); // 0 -- copy was zeroed
+    }
+}
+```
+**Output**:
+```
+5
+0
+```
+
+### Pseudocode Angle
+```
+FUNCTION zeroOut(grid):
+    FOR r FROM 0 TO grid.length - 1:
+        FOR c FROM 0 TO grid[r].length - 1:
+            grid[r][c] = 0
+        END FOR
+    END FOR
+END FUNCTION
+```
+Notice the inner bound uses `grid[r].length`, not `grid[0].length`. Pseudocode makes that look like a detail; in Java it is the difference between correct and a runtime crash.
+
+### Python aside (optional, Java stays canonical)
+Python models a 2D array as a list of lists:
+```python
+grid = [[5, 4], [3]]          # ragged by default
+total = sum(sum(row) for row in grid)
+grid[0][0] = 0
+```
+Same nested-loop logic, no type declarations. But Java arrays are fixed-size and the exam uses Java - so keep the `int[][]` syntax sharp.
+
+### Common Errors
+- Assuming a method that accepts `int[][]` gets a fresh copy - it gets the same grid.
+- Building a "copy" with `int[][] c = grid;` - that just copies the campus map, not the building. Both names point to one grid, so zeroing `c` zeroes `grid`.
+---
+## 14. Connection, Practice, and Extensions
+### Connection to AP CS A Unit Eight
+Unit Eight generalizes the one-dimensional arrays of [Unit Six](unit_6.md) and the `ArrayList` work of [Unit Seven](unit_7.md) into a grid. The legacy exam tested 2D arrays mostly through nested-loop tracing and small FRQ tasks (row/column sums, searching, matrix operations). In the current four-unit curriculum this same Java sits inside [New Unit 4](new_unit_4.md), which is worth 30%–40% of the MC. The loops did not change when College Board renumbered the chapters - only the headings did. Trash code is forever.
+
+### Practice Questions
+1. **Code Tracing (from section 10, answered)**: The doubled grid prints
+   ```
+   2 4 
+   6 8 
+   ```
+   Each value is multiplied by 2; rows print on separate lines.
+
+2. **Method Implementation**: A correct `diagonalSum` for a square matrix:
+   ```java
+   public static int diagonalSum(int[][] m) {
+       int sum = 0;
+       for (int i = 0; i < m.length; i++) {
+           sum += m[i][i];
+       }
+       return sum;
+   }
+   ```
+
+3. **Bug Fixing (from section 10, answered)**: The outer loop must be `i < 3`, not `i <= 3`. As written, `i == 3` accesses `a[3]`, which is out of bounds for a 3×3 array (valid rows 0–2).
+
+4. **Tracing**: For `int[][] g = {{1,2,3},{4,5,6}}`, what are `g.length`, `g[1].length`, and `g[1][0]`?
+   **Answer**: `2`, `3`, and `4`.
+
+5. **Ragged Reasoning**: With `int[][] r = new int[2][]; r[0] = new int[1]; r[1] = new int[3];`, what is `r[0].length` and does `r[0][1]` work?
+   **Answer**: `1`; `r[0][1]` throws `ArrayIndexOutOfBoundsException`. Row 0 only has index 0.
+
+6. **Writing Method**: Implement `public static int countEvens(int[][] grid)` that counts even values in a ragged grid. Use `grid[r].length` for the inner loop bound.
+
+7. **Reference Semantics**: A method takes `int[][] g` and sets `g[0][0] = 99`. Does the caller see the change?
+   **Answer**: Yes - 2D arrays are passed by reference, so every cell mutation hits the original grid.
+
+8. **Coding Exercise**: Write `public static double average(int[][] grid)` that returns the average of every element and returns `0.0` for an empty grid. Use `double` for the sum to avoid integer division - the GPA-style trap that ruins averages.
+
+### Extensions
+- **Jagged by design**: Ragged arrays save memory when rows truly differ (e.g., a triangle of numbers). Correct code always queries `grid[r].length`.
+- **Column-major traversal**: Swapping the loop order - `for (c) for (r)` - visits a column at a time. It is correct on rectangular grids but breaks on ragged ones, so prefer row-major unless you have a reason.
+- **Deep equality**: `arr1 == arr2` compares the outer reference only; `Arrays.deepEquals(arr1, arr2)` compares every cell. The distinction is pure Java and pure trash-code fuel.
+- **Beyond AP**: Game boards (Unit 8's natural home), image pixels (the `BufferedImage` example above), and spreadsheet-style tables all reduce to `int[][]`.
+
+### Best Practices
+- Use `grid.length` for rows and `grid[r].length` for columns - never hard-code dimensions.
+- Declare accumulators for row sums *inside* the outer loop so they reset per row.
+- Prefer helper methods (`total`, `print`, `findMax`) over duplicating nested loops - duplication is where trash code breeds.
+- Validate bounds before accessing when indices come from user input or a computed value.
+- Use `Arrays.deepToString(grid)` while debugging instead of hand-printing; it shows ragged structure clearly.
+
+# [next](unit_9.md)

@@ -1,5 +1,11 @@
+---
+title: AP CS A Unit 4 - Loops, Searching, and Sorting
+---
 [Go back to home page](README.md)  
 # [previous](unit_3.md) <-- [next](unit_5.md)  
+**New curriculum equivalent**: The loops and searching material here now lives in [New Unit 2](new_unit_2.md); searching and sorting also appear in [New Unit 4](new_unit_4.md).
+
+
 # AP CS A Unit Four: Loops, Searching, and Sorting  
 ## 1. Loops in Java  
 Loops allow programmers to repeat code efficiently. Unit Four emphasizes the **for loop** and **enhanced for loop** (for-each loop), which are key tools for working with arrays and repetitive tasks.
@@ -171,7 +177,7 @@ System.out.println("Index of 88: " + index);
 ```
 **Output**: `Index of 88: 2`
 #### Key Notes  
-- Time complexity: O(n), where n is the list size—slow for large datasets.  
+- Time complexity: O(n), where n is the list size, slow for large datasets.  
 - No sorting required, making it versatile.  
 - Returns -1 conventionally if the target isn't found.  
 #### Common Errors  
@@ -490,3 +496,137 @@ Visualize algorithm behavior:
 - Use descriptive variable names (e.g., `grade` instead of `g`) for clarity.  
 - Comment complex algorithms to explain logic.  
 - Test with edge cases (e.g., empty arrays, duplicates).
+
+---
+## 7. Informal Run-Time Analysis (Exam-Ready)
+
+### Definition
+**Informal run-time analysis** asks one question: as the input size `n` grows, how does the amount of work grow? The AP exam never asks for a formal proof. It asks you to recognize a loop, count roughly how many times it runs, and name the order of growth. Think of it as estimating how long the campus shuttle takes: you do not need a stopwatch on every seat, you just need to know that adding stops makes the route longer.
+
+### The growth ladder
+| Order | Name | Where you have seen it | Effect of doubling `n` |
+|-------|------|------------------------|------------------------|
+| O(1) | constant | `arr[0]`, a single `if` | none |
+| O(log n) | logarithmic | binary search | one extra comparison |
+| O(n) | linear | linear search, one loop | roughly doubles |
+| O(n log n) | linearithmic | merge sort | a bit more than doubles |
+| O(n²) | quadratic | selection/insertion sort, nested loops | roughly quadruples |
+
+**TOP TIP**: On the exam, "which is faster for large `n`?" is answered by this ladder. O(log n) beats O(n), which beats O(n²). Binary search on a million sorted AP scores takes about 20 comparisons; linear search takes up to a million. Same answer, very different GPA outcomes.
+
+### Counting work in loops
+- One loop from `0` to `n` → `n` iterations → O(n).
+- Two loops **in a row**, each to `n` → `n + n = 2n` → still O(n); drop the constant.
+- A loop inside a loop, each to `n` → `n × n` → O(n²).
+- Halving the range each step → O(log n).
+
+### Pseudocode angle
+```
+ALGORITHM CountHighScores
+  SET count TO 0
+  FOR i FROM 0 TO n - 1
+    IF scores[i] >= 4 THEN
+      count = count + 1
+    END IF
+  END FOR
+  OUTPUT count
+END ALGORITHM
+```
+One `FOR` over `n` items with a constant-time `IF` inside is O(n). The `IF` does not add a factor; it is still "look at each score once," which is the shape of roughly every free-response question ever written.
+
+### Trash Code Example: accidental quadratic work
+```java
+public class DuplicateTrash {
+    public static boolean hasDuplicate(int[] scores) {
+        for (int i = 0; i < scores.length; i++) {
+            for (int j = 0; j < scores.length; j++) {   // starts at 0 every time
+                if (i != j && scores[i] == scores[j]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+```
+**Output**: `true` or `false`, eventually.
+
+**Why It's Trash**: It compares every pair twice and compares each element with itself, then filters those out with `i != j`. Starting `j` at `i + 1` fixes the logic and halves the work, but the order is still O(n²): quadratic trash code. Correct answer, needless labor; the laptop fan notices.
+
+### Python aside (optional, Java stays canonical)
+The ladder is language-independent. The same linear scan looks like this:
+```python
+def count_high_scores(scores):
+    count = 0
+    for s in scores:
+        if s >= 4:
+            count += 1
+    return count
+```
+Still O(n). Java stays canonical on the exam; the point is that "one pass over the data" costs the same in every language.
+
+### Common Errors
+- Counting the `if` as another factor. A constant-time operation inside one loop does not make it O(n²).
+- Keeping the constant: `2n` is O(n), not O(2n). Exam answers use the simplest order.
+- Assuming "sorted" is free. Binary search is O(log n) only because the data arrived sorted; sorting first costs O(n log n).
+
+---
+## 8. Searching and Sorting Face-Off
+
+### Definition
+Choosing the right tool is half the exam. Both searches find a value and both sorts order a list; their costs differ.
+
+### Search comparison
+| Algorithm | Data requirement | Order | Returns |
+|-----------|------------------|-------|---------|
+| Linear search | any list | O(n) | index or -1 |
+| Binary search | **sorted** list | O(log n) | index or -1 |
+
+### Sort comparison
+| Algorithm | Strategy | Order | Extra space | Stable |
+|-----------|----------|-------|-------------|--------|
+| Selection sort | find minimum, swap | O(n²) | O(1) | no |
+| Insertion sort | build sorted prefix | O(n²) | O(1) | yes |
+| Merge sort | split, sort, merge | O(n log n) | O(n) | yes |
+
+**TOP TIP**: Insertion sort is adaptive: on nearly sorted data it runs close to O(n), which is why it quietly beats selection sort in practice even though both are O(n²). Exam question "which sort is fastest on almost-sorted data?" → insertion sort.
+
+### Trash Code Example: binary search on unsorted data
+```java
+public class LostBinaryTrash {
+    public static int binarySearch(int[] arr, int target) {
+        int left = 0;
+        int right = arr.length - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (arr[mid] == target) return mid;
+            if (arr[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return -1;
+    }
+    public static void main(String[] args) {
+        int[] scores = {88, 92, 85, 90, 87};   // not sorted -- the trap
+        int index = binarySearch(scores, 87);
+        System.out.println("Index of 87: " + index);
+    }
+}
+```
+**Output**: `Index of 87: -1`
+
+**Why It's Trash**: `87` is sitting right there at index 4. Binary search assumes sorted order and confidently returns -1, a wrong answer with no crash and no warning. Trash code of the silent variety, exactly the kind you might bubble onto a scantron. Sort first, or use linear search.
+
+### Practice Questions
+1. **Runtime**: One loop over `n` items followed by a second loop over `n` items. What is the order of growth?
+   **Answer**: O(n). `n + n = 2n`, and constants are dropped.
+2. **Nested**: Two nested loops, each running `n` times?
+   **Answer**: O(n²).
+3. **Choice**: You have a large sorted array of AP scores and need repeated lookups. Which search?
+   **Answer**: Binary search, O(log n) per lookup.
+4. **Sort**: Which sort is stable and O(n log n)?
+   **Answer**: Merge sort.
+5. **Binary search trace**: For `{1, 3, 5, 7, 9}`, how many comparisons to find `9`?
+   **Answer**: 3 (check mid `5`, then `7`, then `9`).
+
+---
+# [next](unit_5.md)
